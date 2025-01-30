@@ -12,4 +12,4 @@ Formatage et validation des numéros de téléphone français avec support de di
 Ajoutez ce script dans les paramètres personnalisés de votre site Webflow :
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/[VOTRE-USERNAME]/[NOM-REPO]@main/src/webflow-utils.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/robindelporte/KparK@main/src/phone-utils.js"></script>
