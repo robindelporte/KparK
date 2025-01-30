@@ -1,99 +1,62 @@
 (function() {
-    const PhoneUtils = {
+    const EmailUtils = {
         init: function() {
-            console.log('PhoneUtils: Initialisation...');
-            console.log('PhoneUtils: Attente du chargement du DOM...');
-            document.addEventListener('DOMContentLoaded', function() {
-                console.log('PhoneUtils: DOM chargé');
-                const phoneInput = document.querySelector('input[type="tel"]');
-                if (phoneInput) {
-                    console.log('Champ téléphone trouvé, ajout des événements');
-                    this._attachEvents(phoneInput);
-                } else {
-                    console.log('Aucun champ téléphone trouvé dans le formulaire');
+            const emailInputs = document.querySelectorAll('input[type="email"]');
+            emailInputs.forEach(input => {
+                if (input) {
+                    this._attachEvents(input);
                 }
-            }.bind(this));
+            });
         },
 
         _attachEvents: function(input) {
             input.addEventListener('input', () => {
-                console.log('Événement input déclenché');
-                this._handlePhoneNumber(input);
+                this._handleEmail(input);
             });
             
             input.addEventListener('blur', () => {
-                console.log('Événement blur déclenché');
-                this._handlePhoneNumber(input);
+                this._handleEmail(input);
             });
             
             input.form.addEventListener('submit', (e) => {
-                console.log('Tentative de soumission du formulaire');
-                if (!this._handlePhoneNumber(input)) {
-                    console.log('Soumission bloquée : numéro invalide');
+                if (!this._handleEmail(input)) {
                     e.preventDefault();
-                    alert('Veuillez entrer un numéro de téléphone valide');
-                } else {
-                    console.log('Formulaire valide, soumission autorisée');
+                    alert('Veuillez entrer une adresse email valide');
                 }
             });
         },
 
-        _handlePhoneNumber: function(input) {
-            console.log('--- Début du traitement ---');
-            console.log('Valeur saisie :', input.value);
-            
+        _handleEmail: function(input) {
             const displayValue = input.value;
-            console.log('Display value :', displayValue);
-            
             let hiddenInput = this._getOrCreateHiddenInput(input.form);
+            let normalizedEmail = this._normalizeEmail(displayValue);
+            hiddenInput.value = normalizedEmail;
             
-            let normalizedNumber = this._normalizeNumber(displayValue);
-            console.log('Numéro final formaté :', normalizedNumber);
-            
-            hiddenInput.value = normalizedNumber;
-            console.log('Valeur du champ caché mise à jour :', hiddenInput.value);
-            
-            const isValid = this._validateNumber(displayValue);
-            console.log('Numéro valide ?', isValid);
-            
+            const isValid = this._validateEmail(displayValue);
             input.classList.toggle('error', !isValid);
-            
-            console.log('--- Fin du traitement ---');
             return isValid;
         },
 
         _getOrCreateHiddenInput: function(form) {
-            let hidden = form.querySelector('input[name="phone_normalized"]');
+            let hidden = form.querySelector('input[name="email_normalized"]');
             if (!hidden) {
-                console.log('Création du champ caché');
                 hidden = document.createElement('input');
                 hidden.type = 'hidden';
-                hidden.name = 'phone_normalized';
+                hidden.name = 'email_normalized';
                 form.appendChild(hidden);
             }
             return hidden;
         },
 
-        _normalizeNumber: function(value) {
-            let normalized = value.replace(/[^\d+]/g, '');
-            console.log('Après suppression caractères spéciaux :', normalized);
-            
-            normalized = normalized.replace(/^0/, '+33');
-            console.log('Après conversion 0 en +33 :', normalized);
-            
-            if (normalized.startsWith('33')) {
-                normalized = '+' + normalized;
-                console.log('Ajout du + devant 33 :', normalized);
-            }
-            
-            return normalized.replace(/(\+33)(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5 $6');
+        _normalizeEmail: function(value) {
+            return value.trim().toLowerCase();
         },
 
-        _validateNumber: function(value) {
-            return /^(?:\+33\s?|0)\d(?:\s?\d{2}){4}$/.test(value);
+        _validateEmail: function(value) {
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return emailRegex.test(value);
         }
     };
 
-    // Auto-initialisation
-    PhoneUtils.init();
+    EmailUtils.init();
 })();
