@@ -1,7 +1,10 @@
 (function() {
     const PhoneUtils = {
         init: function() {
+            console.log('PhoneUtils: Initialisation...');
+            console.log('PhoneUtils: Attente du chargement du DOM...');
             document.addEventListener('DOMContentLoaded', function() {
+                console.log('PhoneUtils: DOM chargé');
                 const phoneInput = document.querySelector('input[type="tel"]');
                 if (phoneInput) {
                     console.log('Champ téléphone trouvé, ajout des événements');
