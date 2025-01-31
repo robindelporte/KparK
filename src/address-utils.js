@@ -1,31 +1,30 @@
 (function() {
     const AddressUtils = {
         init: function() {
-            // Initialisation de l'autocomplétion sur le code postal
             const postalInput = document.querySelector('input[data-address="postal"]');
             const cityInput = document.querySelector('input[data-address="city"]');
+            const errorMsg = document.querySelector('[data-address="error"]');
             
             if (!postalInput || !cityInput) return;
 
-            // Style pour le conteneur de suggestions
             this._createStyles();
             
-            // Créer le conteneur de suggestions
             const suggestionsContainer = document.createElement('div');
             suggestionsContainer.className = 'city-suggestions';
             cityInput.parentNode.insertBefore(suggestionsContainer, cityInput.nextSibling);
             
-            // Événements
             postalInput.addEventListener('input', (e) => {
                 const postal = e.target.value;
+                if (errorMsg) errorMsg.style.display = 'none';
+                
                 if (postal.length === 5) {
-                    this._fetchCities(postal, suggestionsContainer, cityInput);
+                    this._fetchCities(postal, suggestionsContainer, cityInput, errorMsg);
                 } else {
                     suggestionsContainer.style.display = 'none';
+                    cityInput.value = '';
                 }
             });
             
-            // Masquer les suggestions en cliquant ailleurs
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.city-suggestions')) {
                     suggestionsContainer.style.display = 'none';
@@ -59,12 +58,13 @@
             document.head.appendChild(style);
         },
 
-        _fetchCities: function(postalCode, container, cityInput) {
-            // Utilise l'API gouvernementale pour récupérer les villes
+        _fetchCities: function(postalCode, container, cityInput, errorMsg) {
             fetch(`https://geo.api.gouv.fr/communes?codePostal=${postalCode}&fields=nom`)
                 .then(response => response.json())
                 .then(cities => {
                     if (cities.length > 0) {
+                        if (errorMsg) errorMsg.style.display = 'none';
+                        
                         container.innerHTML = '';
                         cities.forEach(city => {
                             const div = document.createElement('div');
@@ -77,6 +77,12 @@
                             container.appendChild(div);
                         });
                         container.style.display = 'block';
+                    } else {
+                        container.style.display = 'none';
+                        cityInput.value = '';
+                        if (errorMsg) {
+                            errorMsg.style.display = 'block';
+                        }
                     }
                 })
                 .catch(error => console.error('Erreur:', error));
