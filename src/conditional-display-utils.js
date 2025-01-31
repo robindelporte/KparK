@@ -2,24 +2,16 @@
     const ConditionalDisplay = {
         init: function() {
             console.log('ConditionalDisplay: Initialisation...');
-            this._attachEvents();
             this._initializeGroups();
+            this._attachEvents();
         },
 
         _attachEvents: function() {
-            // Surveiller les clics sur les checkboxes Webflow
-            document.addEventListener('click', (e) => {
-                const checkboxDiv = e.target.closest('.w-checkbox-input');
-                if (!checkboxDiv) return;
-
-                const input = checkboxDiv.nextElementSibling;
-                if (!input || !input.getAttribute('data-related-group')) return;
-
-                const isChecked = checkboxDiv.classList.contains('w--redirected-checked');
-                const groupId = input.getAttribute('data-related-group');
-                
-                console.log('Checkbox clicked:', { groupId, isChecked });
-                this._toggleGroup(groupId, isChecked);
+            document.addEventListener('change', (e) => {
+                // Petit délai pour laisser Webflow mettre à jour les classes
+                setTimeout(() => {
+                    this._updateAllGroups();
+                }, 50);
             });
         },
 
@@ -28,25 +20,32 @@
             document.querySelectorAll('[data-fields-group]').forEach(group => {
                 group.style.display = 'none';
             });
+            
+            // État initial
+            this._updateAllGroups();
+        },
 
-            // Afficher les groupes des checkboxes déjà cochées
-            document.querySelectorAll('.w-checkbox-input.w--redirected-checked').forEach(checkboxDiv => {
-                const input = checkboxDiv.nextElementSibling;
-                if (!input) return;
+        _updateAllGroups: function() {
+            // Vérifier toutes les checkboxes et mettre à jour leurs groupes
+            document.querySelectorAll('input[data-related-group]').forEach(input => {
+                const checkboxDiv = input.previousElementSibling;
+                if (!checkboxDiv) return;
 
+                const isChecked = checkboxDiv.classList.contains('w--redirected-checked');
                 const groupId = input.getAttribute('data-related-group');
-                if (groupId) {
-                    this._toggleGroup(groupId, true);
-                }
+                
+                console.log('État checkbox:', input.getAttribute('name'), isChecked);
+                this._toggleGroup(groupId, isChecked);
             });
         },
 
         _toggleGroup: function(groupId, show) {
-            console.log('Toggle group:', { groupId, show });
             const group = document.querySelector(`[data-fields-group="${groupId}"]`);
             if (!group) return;
 
+            console.log('Toggle group:', groupId, show ? 'visible' : 'caché');
             group.style.display = show ? 'block' : 'none';
+            
             if (!show) {
                 this._resetFieldsInGroup(group);
             }
