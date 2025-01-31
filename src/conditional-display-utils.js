@@ -44,7 +44,7 @@
             if (!group) return;
 
             console.log('Toggle group:', groupId, show ? 'visible' : 'caché');
-            group.style.display = show ? 'block' : 'none';
+            group.style.display = show ? 'flex' : 'none';
             
             if (!show) {
                 this._resetFieldsInGroup(group);
