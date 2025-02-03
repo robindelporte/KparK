@@ -1,6 +1,6 @@
 (function() {
-    const FieldMapper = {
-        initFenetres: function() {
+    const FormMapper = {
+        handleWindows: function() {
             document.querySelectorAll('[data-fields-group="fenetre"] [data-type-ouverture] input[type="radio"]').forEach(radio => {
                 radio.addEventListener('change', (e) => {
                     const type = e.target.value;
@@ -28,8 +28,8 @@
             });
         },
 
-        initVolets: function() {
-            document.querySelectorAll('[data-fields-group="volets"] [data-type-ouverture] input[type="radio"]').forEach(radio => {
+        handleShutters: function() {
+            document.querySelectorAll('[data-fields-group="Volets"] input[name="typeVolet"]').forEach(radio => {
                 radio.addEventListener('change', (e) => {
                     const type = e.target.value;
                     const group = e.target.closest('[data-fields-group]');
@@ -46,8 +46,8 @@
                     }
 
                     // Mise à jour des names des radios matériaux
-                    const materialInputs = group.querySelectorAll('[data-material-input] input[type="radio"]');
-                    materialInputs.forEach(input => {
+                    const materialRadios = group.querySelectorAll('input[type="radio"]:not([name="typeVolet"])');
+                    materialRadios.forEach(input => {
                         const newName = `materiaux${type}__c`;
                         input.name = newName;
                         input.setAttribute('data-name', newName);
@@ -57,15 +57,15 @@
         },
 
         init: function() {
-            this.initFenetres();
-            this.initVolets();
+            this.handleWindows();
+            this.handleShutters();
         }
     };
 
     // Auto-initialisation
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => FieldMapper.init());
+        document.addEventListener('DOMContentLoaded', () => FormMapper.init());
     } else {
-        FieldMapper.init();
+        FormMapper.init();
     }
 })();
