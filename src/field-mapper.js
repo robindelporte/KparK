@@ -87,7 +87,7 @@
         },
 
     initDoors: function() {
-            document.querySelectorAll('[data-fields-group="portes"] input[name="typePorte"]').forEach(radio => {
+            document.querySelectorAll('[data-fields-group="Portes"] input[name="typePorte"]').forEach(radio => {
                 radio.addEventListener('change', (e) => {
                     const type = e.target.value;
                     const group = e.target.closest('[data-fields-group="portes"]');
