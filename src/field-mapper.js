@@ -29,7 +29,7 @@
         },
 
         initVolets: function() {
-            document.querySelectorAll('[data-fields-group="volet"] [data-type-ouverture] input[type="radio"]').forEach(radio => {
+            document.querySelectorAll('[data-fields-group="volets"] [data-type-ouverture] input[type="radio"]').forEach(radio => {
                 radio.addEventListener('change', (e) => {
                     const type = e.target.value;
                     const group = e.target.closest('[data-fields-group]');
