@@ -1,21 +1,11 @@
 (function() {
     const FieldMapper = {
         init: function() {
-            // Surveiller les clics sur les labels radio
-            document.addEventListener('click', (e) => {
-                const radioLabel = e.target.closest('label[data-type-prefix]');
-                if (!radioLabel) return;
-
-                // Attendre que Webflow mette à jour la classe
-                setTimeout(() => {
-                    // Vérifier si ce radio est sélectionné
-                    const isChecked = radioLabel.querySelector('.w-radio-input').classList.contains('w--redirected-checked');
-                    if (!isChecked) return;
-
-                    // Récupérer le type depuis data-type-prefix
-                    const type = radioLabel.getAttribute('data-type-prefix');
-                    console.log('Type sélectionné:', type);
-
+            // Pour chaque groupe de radios qui contrôle le type
+            document.querySelectorAll('input[type="radio"][name="typeOuverture"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const type = e.target.value; // "Fenetre", "Coulissant" ou "PorteFenetre"
+                    
                     // Mise à jour du name de l'input quantité
                     const quantityInput = document.querySelector('[data-quantity-input]');
                     if (quantityInput) {
@@ -23,28 +13,18 @@
                         console.log('Quantity input name updated to:', quantityInput.name);
                     }
 
-                    // Mise à jour des names de tous les radios matériaux
-                    const materialInputs = document.querySelectorAll('[data-material-input]');
-                    materialInputs.forEach(input => {
-                        input.name = `materiaux${type}__c`;
-                        console.log('Material input name updated to:', input.name);
+                    // Mise à jour des names des radios matériaux
+                    const materialLabels = document.querySelectorAll('label[data-material-input]');
+                    materialLabels.forEach(label => {
+                        const input = label.querySelector('input[type="radio"]');
+                        if (input) {
+                            input.name = `materiaux${type}__c`;
+                            input.setAttribute('data-name', `materiaux${type}__c`);
+                            console.log('Material input name updated to:', input.name);
+                        }
                     });
-                }, 50); // Petit délai pour laisser Webflow mettre à jour les classes
-            });
-
-            // Vérifier l'état initial au chargement
-            const checkedRadio = document.querySelector('label[data-type-prefix] .w-radio-input.w--redirected-checked');
-            if (checkedRadio) {
-                const type = checkedRadio.closest('label').getAttribute('data-type-prefix');
-                const quantityInput = document.querySelector('[data-quantity-input]');
-                if (quantityInput) {
-                    quantityInput.name = `quantite${type}__c`;
-                }
-                const materialInputs = document.querySelectorAll('[data-material-input]');
-                materialInputs.forEach(input => {
-                    input.name = `materiaux${type}__c`;
                 });
-            }
+            });
         }
     };
 
