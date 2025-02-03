@@ -1,53 +1,33 @@
 (function() {
-    const FormUtils = {
-        initFenetres: function() {
-            // Gestionnaire pour le type d'ouverture
-            document.querySelectorAll('[data-type-ouverture]').forEach(radio => {
+    const FieldMapper = {
+        init: function() {
+            // Pour chaque groupe de radios qui contrôle le type
+            document.querySelectorAll('input[type="radio"][name="typeOuverture"]').forEach(radio => {
                 radio.addEventListener('change', (e) => {
-                    const prefix = e.target.getAttribute('data-type-prefix');
+                    const type = e.target.value; // "Fenetre", "Coulissant" ou "PorteFenetre"
                     
                     // Mise à jour du name de l'input quantité
-                    const quantityInput = e.target.closest('[data-fields-group]')
-                        .querySelector('[data-quantity-input]');
+                    const quantityInput = document.querySelector('[data-quantity-input]');
                     if (quantityInput) {
-                        quantityInput.name = `quantite${prefix}__c`;
+                        quantityInput.name = `quantite${type}__c`;
+                        console.log('Quantity input name updated to:', quantityInput.name);
                     }
 
-                    // Mise à jour des names des radios matériaux
-                    const materialsInputs = e.target.closest('[data-fields-group]')
-                        .querySelectorAll('[data-material-input]');
-                    materialsInputs.forEach(input => {
-                        input.name = `materiaux${prefix}__c`;
+                    // Mise à jour des names de tous les radios matériaux
+                    const materialInputs = document.querySelectorAll('[data-material-input]');
+                    materialInputs.forEach(input => {
+                        input.name = `materiaux${type}__c`;
+                        console.log('Material input name updated to:', input.name);
                     });
                 });
             });
-
-            // Gestion du "10 et plus" pour le slider
-            document.addEventListener('change', (e) => {
-                if (!e.target.matches('input[type="range"]')) return;
-                
-                const rangeInput = e.target;
-                const maxValue = parseFloat(rangeInput.max);
-                const currentValue = parseFloat(rangeInput.value);
-                
-                if (currentValue === maxValue) {
-                    const displayInput = rangeInput.parentElement.querySelector('input[type="text"]');
-                    if (displayInput) {
-                        displayInput.value = '10 et plus';
-                    }
-                }
-            });
-        },
-
-        init: function() {
-            this.initFenetres();
         }
     };
 
     // Auto-initialisation
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => FormUtils.init());
+        document.addEventListener('DOMContentLoaded', () => FieldMapper.init());
     } else {
-        FormUtils.init();
+        FieldMapper.init();
     }
 })();
