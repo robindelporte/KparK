@@ -7,58 +7,54 @@
                     const group = e.target.closest('[data-fields-group]');
                     
                     if (!group) return;
-                    // Mise à jour du name, data-name et id de l'input quantité
+                    
                     const quantityInput = group.querySelector('.fs-rangeslider_input');
                     if (quantityInput) {
                         const newName = `quantite${type}__c`;
                         quantityInput.name = newName;
                         quantityInput.setAttribute('data-name', newName);
                         quantityInput.id = newName;
-                        console.log('Quantity input updated:', {
-                            name: quantityInput.name,
-                            dataName: quantityInput.getAttribute('data-name'),
-                            id: quantityInput.id
-                        });
                     }
-                    // Mise à jour des names des radios matériaux
+
                     const materialInputs = group.querySelectorAll('[data-material-input] input[type="radio"]');
                     materialInputs.forEach(input => {
                         const newName = `materiaux${type}__c`;
                         input.name = newName;
                         input.setAttribute('data-name', newName);
-                        console.log('Material input name updated to:', newName);
                     });
                 });
             });
         },
 
         initShutters: function() {
-            // Gestion spécifique pour les volets
             document.querySelectorAll('[data-fields-group="Volets"] input[name="typeVolet"]').forEach(radio => {
                 radio.addEventListener('change', (e) => {
-                    console.log('Volet radio changed:', e.target.value);
                     const type = e.target.value;
                     const group = e.target.closest('[data-fields-group="Volets"]');
                     
                     if (!group) return;
 
-                    // Mise à jour de l'input quantité pour les volets
                     const quantityInput = group.querySelector('.fs-rangeslider_input');
                     if (quantityInput) {
                         const newName = `quantite${type}__c`;
                         quantityInput.name = newName;
                         quantityInput.setAttribute('data-name', newName);
                         quantityInput.id = newName;
-                        console.log('Volet quantity updated:', newName);
                     }
 
-                    // Mise à jour des radios matériaux pour les volets
-                    const materialRadios = group.querySelectorAll('.form_radio input[type="radio"]:not([name="typeVolet"])');
-                    materialRadios.forEach(input => {
-                        const newName = `materiaux${type}__c`;
-                        input.name = newName;
-                        input.setAttribute('data-name', newName);
-                        console.log('Volet material updated:', newName);
+                    const materialLabels = group.querySelectorAll('.form_radio');
+                    materialLabels.forEach(label => {
+                        const input = label.querySelector('input[type="radio"]:not([name="typeVolet"])');
+                        if (input) {
+                            const newName = `materiaux${type}__c`;
+                            input.name = newName;
+                            input.setAttribute('data-name', newName);
+
+                            const allowedTypes = label.getAttribute('data-material-allowed');
+                            if (allowedTypes) {
+                                label.style.display = allowedTypes.includes(type) ? 'block' : 'none';
+                            }
+                        }
                     });
                 });
             });
@@ -67,54 +63,72 @@
         initStores: function() {
             document.querySelectorAll('[data-fields-group="Stores"] input[name="typeStore"]').forEach(radio => {
                 radio.addEventListener('change', (e) => {
-                    console.log('Store radio changed:', e.target.value);
                     const type = e.target.value;
                     const group = e.target.closest('[data-fields-group="Stores"]');
                     
                     if (!group) return;
 
-                    // Mise à jour de l'input quantité pour les stores
                     const quantityInput = group.querySelector('.fs-rangeslider_input');
                     if (quantityInput) {
                         const newName = `quantite${type}__c`;
                         quantityInput.name = newName;
                         quantityInput.setAttribute('data-name', newName);
                         quantityInput.id = newName;
-                        console.log('Store quantity updated:', newName);
                     }
                 });
             });
         },
 
-    initDoors: function() {
+        initDoors: function() {
             document.querySelectorAll('[data-fields-group="Portes"] input[name="typePorte"]').forEach(radio => {
                 radio.addEventListener('change', (e) => {
                     const type = e.target.value;
-                    const group = e.target.closest('[data-fields-group="portes"]');
+                    const group = e.target.closest('[data-fields-group="Portes"]');
                     
                     if (!group) return;
 
                     const quantityInput = group.querySelector('.fs-rangeslider_input');
                     if (quantityInput) {
-                        const newName = `quantitePorte${type}__c`;
+                        const newName = `quantite${type}__c`;
                         quantityInput.name = newName;
                         quantityInput.setAttribute('data-name', newName);
                         quantityInput.id = newName;
-                        console.log('Door quantity updated:', newName);
                     }
                 });
             });
         },
 
-    init: function() {
+        initRangeSliders: function() {
+            document.querySelectorAll('.fs-rangeslider_input').forEach(input => {
+                const displayValueElement = input.closest('.fs-rangeslider_wrapper').querySelector('[fs-rangeslider-element="display-value"]');
+                
+                if (displayValueElement) {
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            if (mutation.type === 'characterData') {
+                                const value = mutation.target.textContent;
+                                if (value === '10') {
+                                    displayValueElement.textContent = '10 et plus';
+                                    input.value = '10 et plus';
+                                }
+                            }
+                        });
+                    });
+
+                    observer.observe(displayValueElement, { characterData: true, subtree: true });
+                }
+            });
+        },
+
+        init: function() {
             this.initWindows();
             this.initShutters();
             this.initStores();
             this.initDoors();
+            this.initRangeSliders();
         }
     };
 
-    // Auto-initialisation
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => FieldMapper.init());
     } else {
