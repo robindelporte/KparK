@@ -61,23 +61,39 @@
         },
 
         initStores: function() {
-            document.querySelectorAll('[data-fields-group="Stores"] input[name="typeStore"]').forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    const type = e.target.value;
-                    const group = e.target.closest('[data-fields-group="Stores"]');
-                    
-                    if (!group) return;
+    document.querySelectorAll('[data-fields-group="Stores"] input[name="typeStore"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const type = e.target.value;
+            const group = e.target.closest('[data-fields-group="Stores"]');
+            
+            if (!group) return;
 
-                    const quantityInput = group.querySelector('.fs-rangeslider_input');
-                    if (quantityInput) {
-                        const newName = `quantite${type}__c`;
-                        quantityInput.name = newName;
-                        quantityInput.setAttribute('data-name', newName);
-                        quantityInput.id = newName;
-                    }
+            const quantityInput = group.querySelector('.fs-rangeslider_input');
+            if (quantityInput) {
+                const newName = `quantite${type}__c`;
+                quantityInput.name = newName;
+                quantityInput.setAttribute('data-name', newName);
+                quantityInput.id = newName;
+            }
+
+            // Gérer l'affichage du groupe de matériaux pour les moustiquaires
+            const materialsWrapper = group.querySelector('[data-material-group="moustiquaire"]');
+            if (materialsWrapper) {
+                materialsWrapper.style.display = type === 'Moustiquaire' ? 'flex' : 'none';
+            }
+
+            // Mettre à jour les noms des inputs matériaux
+            if (materialsWrapper) {
+                const materialInputs = materialsWrapper.querySelectorAll('input[type="radio"]');
+                materialInputs.forEach(input => {
+                    const newName = `materiaux${type}__c`;
+                    input.name = newName;
+                    input.setAttribute('data-name', newName);
                 });
-            });
-        },
+            }
+        });
+    });
+},
 
         initDoors: function() {
     document.querySelectorAll('[data-fields-group="Portes"] input[name="typePorte"]').forEach(radio => {
