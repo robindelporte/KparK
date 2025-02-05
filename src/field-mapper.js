@@ -115,7 +115,6 @@
         });
     });
 }
-
         initRangeSliders: function() {
             document.querySelectorAll('.fs-rangeslider_input').forEach(input => {
                 const displayValueElement = input.closest('.fs-rangeslider_wrapper').querySelector('[fs-rangeslider-element="display-value"]');
