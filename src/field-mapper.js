@@ -80,23 +80,41 @@
         },
 
         initDoors: function() {
-            document.querySelectorAll('[data-fields-group="Portes"] input[name="typePorte"]').forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    const type = e.target.value;
-                    const group = e.target.closest('[data-fields-group="Portes"]');
-                    
-                    if (!group) return;
+    document.querySelectorAll('[data-fields-group="Portes"] input[name="typePorte"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const type = e.target.value;
+            const group = e.target.closest('[data-fields-group="Portes"]');
+            
+            if (!group) return;
 
-                    const quantityInput = group.querySelector('.fs-rangeslider_input');
-                    if (quantityInput) {
-                        const newName = `quantite${type}__c`;
-                        quantityInput.name = newName;
-                        quantityInput.setAttribute('data-name', newName);
-                        quantityInput.id = newName;
+            // Update quantity input
+            const quantityInput = group.querySelector('.fs-rangeslider_input');
+            if (quantityInput) {
+                const newName = `quantite${type}__c`;
+                quantityInput.name = newName;
+                quantityInput.setAttribute('data-name', newName);
+                quantityInput.id = newName;
+            }
+
+            // Update material inputs and show/hide based on allowed types
+            const materialLabels = group.querySelectorAll('.form_radio');
+            materialLabels.forEach(label => {
+                const input = label.querySelector('input[type="radio"]:not([name="typePorte"])');
+                if (input) {
+                    const newName = `materiaux${type}__c`;
+                    input.name = newName;
+                    input.setAttribute('data-name', newName);
+
+                    // Handle conditional display based on allowed types
+                    const allowedTypes = label.getAttribute('data-material-allowed');
+                    if (allowedTypes) {
+                        label.style.display = allowedTypes.includes(type) ? 'block' : 'none';
                     }
-                });
+                }
             });
-        },
+        });
+    });
+}
 
         initRangeSliders: function() {
             document.querySelectorAll('.fs-rangeslider_input').forEach(input => {
