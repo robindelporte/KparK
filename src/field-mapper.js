@@ -103,6 +103,17 @@
                    const materialsWrapper = group.querySelector('[data-material-group="moustiquaire"]');
                    if (materialsWrapper) {
                        materialsWrapper.style.display = type === 'Moustiquaire' ? 'flex' : 'none';
+                       
+                       // Si on repasse sur StoreBanne, on réinitialise les radios de moustiquaire
+                       if (type !== 'Moustiquaire') {
+                           materialsWrapper.querySelectorAll('input[type="radio"]').forEach(input => {
+                               const customInput = input.previousElementSibling;
+                               if (customInput) {
+                                   customInput.classList.remove('w--redirected-checked');
+                               }
+                               input.checked = false;
+                           });
+                       }
                    }
 
                    // Mettre à jour les noms des inputs matériaux
