@@ -1,207 +1,215 @@
 (function() {
-   const resetObserver = new MutationObserver((mutations) => {
-       mutations.forEach((mutation) => {
-           if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-               const element = mutation.target;
-               if (element.style.display === 'none') {
-                   // Réinitialiser les radios
-                   element.querySelectorAll('input[type="radio"]').forEach(input => {
-                       const customInput = input.previousElementSibling;
-                       if (customInput) {
-                           customInput.classList.remove('w--redirected-checked');
-                       }
-                       input.checked = false;
-                   });
+    const resetObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                const element = mutation.target;
+                if (element.style.display === 'none') {
+                    FieldMapper._resetGroupFields(element);
+                }
+            }
+        });
+    });
 
-                   // Réinitialiser les valeurs des range sliders
-                   element.querySelectorAll('.fs-rangeslider_input').forEach(input => {
-                       input.value = '0';
-                   });
-               }
-           }
-       });
-   });
+    const FieldMapper = {
+        // Fonction helper pour réinitialiser tous les noms de champs dans un groupe
+        _resetGroupFields: function(group) {
+            // Réinitialiser tous les inputs radio
+            group.querySelectorAll('input[type="radio"]').forEach(input => {
+                input.name = '';
+                input.setAttribute('data-name', '');
+                const customInput = input.previousElementSibling;
+                if (customInput) {
+                    customInput.classList.remove('w--redirected-checked');
+                }
+                input.checked = false;
+            });
 
-   const FieldMapper = {
-       initWindows: function() {
-           document.querySelectorAll('[data-type-ouverture] input[type="radio"]').forEach(radio => {
-               radio.addEventListener('change', (e) => {
-                   const type = e.target.value;
-                   const group = e.target.closest('[data-fields-group]');
-                   
-                   if (!group) return;
-                   
-                   const quantityInput = group.querySelector('.fs-rangeslider_input');
-                   if (quantityInput) {
-                       const newName = `quantite${type}__c`;
-                       quantityInput.name = newName;
-                       quantityInput.setAttribute('data-name', newName);
-                       quantityInput.id = newName;
-                   }
+            // Réinitialiser le range slider
+            const rangeSlider = group.querySelector('.fs-rangeslider_input');
+            if (rangeSlider) {
+                rangeSlider.value = '0';
+                rangeSlider.name = '';
+                rangeSlider.setAttribute('data-name', '');
+            }
+        },
 
-                   const materialInputs = group.querySelectorAll('[data-material-input] input[type="radio"]');
-                   materialInputs.forEach(input => {
-                       const newName = `materiaux${type}__c`;
-                       input.name = newName;
-                       input.setAttribute('data-name', newName);
-                   });
-               });
-           });
-       },
+        // Fonction helper pour gérer les changements dans un groupe
+        _handleGroupChange: function(group, type, typeInputName) {
+            // D'abord, on réinitialise tous les noms sauf le type sélectionné
+            group.querySelectorAll('input[type="radio"]').forEach(input => {
+                if (input.name !== typeInputName && !input.checked) {
+                    input.name = '';
+                    input.setAttribute('data-name', '');
+                }
+            });
 
-       initShutters: function() {
-           document.querySelectorAll('[data-fields-group="Volets"] input[name="typeVolet"]').forEach(radio => {
-               radio.addEventListener('change', (e) => {
-                   const type = e.target.value;
-                   const group = e.target.closest('[data-fields-group="Volets"]');
-                   
-                   if (!group) return;
+            // Gestion du range slider
+            const quantityInput = group.querySelector('.fs-rangeslider_input');
+            if (quantityInput) {
+                if (quantityInput.value !== '0') {
+                    const newName = `quantite${type}__c`;
+                    quantityInput.name = newName;
+                    quantityInput.setAttribute('data-name', newName);
+                    quantityInput.id = newName;
+                } else {
+                    quantityInput.name = '';
+                    quantityInput.setAttribute('data-name', '');
+                }
+            }
 
-                   const quantityInput = group.querySelector('.fs-rangeslider_input');
-                   if (quantityInput) {
-                       const newName = `quantite${type}__c`;
-                       quantityInput.name = newName;
-                       quantityInput.setAttribute('data-name', newName);
-                       quantityInput.id = newName;
-                   }
+            // Gestion des matériaux
+            const checkedMaterial = group.querySelector('[data-material-input] input[type="radio"]:checked');
+            if (checkedMaterial) {
+                const newName = `materiaux${type}__c`;
+                checkedMaterial.name = newName;
+                checkedMaterial.setAttribute('data-name', newName);
+            }
+        },
 
-                   const materialLabels = group.querySelectorAll('.form_radio');
-                   materialLabels.forEach(label => {
-                       const input = label.querySelector('input[type="radio"]:not([name="typeVolet"])');
-                       if (input) {
-                           const newName = `materiaux${type}__c`;
-                           input.name = newName;
-                           input.setAttribute('data-name', newName);
+        initWindows: function() {
+            document.querySelectorAll('[data-type-ouverture] input[type="radio"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const type = e.target.value;
+                    const group = e.target.closest('[data-fields-group]');
+                    if (group) {
+                        this._handleGroupChange(group, type, 'typeOuverture');
+                    }
+                });
+            });
 
-                           const allowedTypes = label.getAttribute('data-material-allowed');
-                           if (allowedTypes) {
-                               label.style.display = allowedTypes.includes(type) ? 'block' : 'none';
-                           }
-                       }
-                   });
-               });
-           });
-       },
+            this._attachGroupListeners('[data-fields-group]', '[data-type-ouverture]');
+        },
 
-       initStores: function() {
-           document.querySelectorAll('[data-fields-group="Stores"] input[name="typeStore"]').forEach(radio => {
-               radio.addEventListener('change', (e) => {
-                   const type = e.target.value;
-                   const group = e.target.closest('[data-fields-group="Stores"]');
-                   
-                   if (!group) return;
+        initShutters: function() {
+            document.querySelectorAll('[data-fields-group="Volets"] input[name="typeVolet"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const type = e.target.value;
+                    const group = e.target.closest('[data-fields-group="Volets"]');
+                    if (group) {
+                        this._handleGroupChange(group, type, 'typeVolet');
+                        
+                        // Gestion de l'affichage des matériaux autorisés
+                        const materialLabels = group.querySelectorAll('.form_radio');
+                        materialLabels.forEach(label => {
+                            const allowedTypes = label.getAttribute('data-material-allowed');
+                            if (allowedTypes) {
+                                label.style.display = allowedTypes.includes(type) ? 'block' : 'none';
+                            }
+                        });
+                    }
+                });
+            });
 
-                   const quantityInput = group.querySelector('.fs-rangeslider_input');
-                   if (quantityInput) {
-                       const newName = `quantite${type}__c`;
-                       quantityInput.name = newName;
-                       quantityInput.setAttribute('data-name', newName);
-                       quantityInput.id = newName;
-                   }
+            this._attachGroupListeners('[data-fields-group="Volets"]', 'input[name="typeVolet"]');
+        },
 
-                   // Gérer l'affichage du groupe de matériaux pour les moustiquaires
-                   const materialsWrapper = group.querySelector('[data-material-group="moustiquaire"]');
-                   if (materialsWrapper) {
-                       materialsWrapper.style.display = type === 'Moustiquaire' ? 'flex' : 'none';
-                       
-                       // Si on repasse sur StoreBanne, on réinitialise les radios de moustiquaire
-                       if (type !== 'Moustiquaire') {
-                           materialsWrapper.querySelectorAll('input[type="radio"]').forEach(input => {
-                               const customInput = input.previousElementSibling;
-                               if (customInput) {
-                                   customInput.classList.remove('w--redirected-checked');
-                               }
-                               input.checked = false;
-                           });
-                       }
-                   }
+        initStores: function() {
+            document.querySelectorAll('[data-fields-group="Stores"] input[name="typeStore"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const type = e.target.value;
+                    const group = e.target.closest('[data-fields-group="Stores"]');
+                    if (group) {
+                        this._handleGroupChange(group, type, 'typeStore');
+                        
+                        // Gestion spécifique pour les moustiquaires
+                        const materialsWrapper = group.querySelector('[data-material-group="moustiquaire"]');
+                        if (materialsWrapper) {
+                            materialsWrapper.style.display = type === 'Moustiquaire' ? 'flex' : 'none';
+                        }
+                    }
+                });
+            });
 
-                   // Mettre à jour les noms des inputs matériaux
-                   if (materialsWrapper) {
-                       const materialInputs = materialsWrapper.querySelectorAll('input[type="radio"]');
-                       materialInputs.forEach(input => {
-                           const newName = `materiaux${type}__c`;
-                           input.name = newName;
-                           input.setAttribute('data-name', newName);
-                       });
-                   }
-               });
-           });
-       },
+            this._attachGroupListeners('[data-fields-group="Stores"]', 'input[name="typeStore"]');
+        },
 
-       initDoors: function() {
-           document.querySelectorAll('[data-fields-group="Portes"] input[name="typePorte"]').forEach(radio => {
-               radio.addEventListener('change', (e) => {
-                   const type = e.target.value;
-                   const group = e.target.closest('[data-fields-group="Portes"]');
-                   
-                   if (!group) return;
+        initDoors: function() {
+            document.querySelectorAll('[data-fields-group="Portes"] input[name="typePorte"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const type = e.target.value;
+                    const group = e.target.closest('[data-fields-group="Portes"]');
+                    if (group) {
+                        this._handleGroupChange(group, type, 'typePorte');
+                        
+                        // Gestion de l'affichage des matériaux autorisés
+                        const materialLabels = group.querySelectorAll('.form_radio');
+                        materialLabels.forEach(label => {
+                            const allowedTypes = label.getAttribute('data-material-allowed');
+                            if (allowedTypes) {
+                                label.style.display = allowedTypes.includes(type) ? 'block' : 'none';
+                            }
+                        });
+                    }
+                });
+            });
 
-                   const quantityInput = group.querySelector('.fs-rangeslider_input');
-                   if (quantityInput) {
-                       const newName = `quantite${type}__c`;
-                       quantityInput.name = newName;
-                       quantityInput.setAttribute('data-name', newName);
-                       quantityInput.id = newName;
-                   }
+            this._attachGroupListeners('[data-fields-group="Portes"]', 'input[name="typePorte"]');
+        },
 
-                   const materialLabels = group.querySelectorAll('.form_radio');
-                   materialLabels.forEach(label => {
-                       const input = label.querySelector('input[type="radio"]:not([name="typePorte"])');
-                       if (input) {
-                           const newName = `materiaux${type}__c`;
-                           input.name = newName;
-                           input.setAttribute('data-name', newName);
+        _attachGroupListeners: function(groupSelector, typeSelector) {
+            document.querySelectorAll(groupSelector).forEach(group => {
+                // Pour les changements de matériaux
+                group.querySelectorAll('[data-material-input] input[type="radio"]').forEach(input => {
+                    input.addEventListener('change', () => {
+                        const typeInput = group.querySelector(typeSelector + ':checked');
+                        if (typeInput) {
+                            this._handleGroupChange(group, typeInput.value, typeInput.name);
+                        }
+                    });
+                });
 
-                           const allowedTypes = label.getAttribute('data-material-allowed');
-                           if (allowedTypes) {
-                               label.style.display = allowedTypes.includes(type) ? 'block' : 'none';
-                           }
-                       }
-                   });
-               });
-           });
-       },
+                // Pour les changements de quantité
+                const rangeSlider = group.querySelector('.fs-rangeslider_input');
+                if (rangeSlider) {
+                    rangeSlider.addEventListener('input', () => {
+                        const typeInput = group.querySelector(typeSelector + ':checked');
+                        if (typeInput) {
+                            this._handleGroupChange(group, typeInput.value, typeInput.name);
+                        }
+                    });
+                }
+            });
+        },
 
-       initRangeSliders: function() {
-           document.querySelectorAll('.fs-rangeslider_input').forEach(input => {
-               const displayValueElement = input.closest('.fs-rangeslider_wrapper').querySelector('[fs-rangeslider-element="display-value"]');
-               
-               if (displayValueElement) {
-                   const observer = new MutationObserver((mutations) => {
-                       mutations.forEach((mutation) => {
-                           if (mutation.type === 'characterData') {
-                               const value = mutation.target.textContent;
-                               if (value === '10') {
-                                   displayValueElement.textContent = '10 et plus';
-                                   input.value = '10 et plus';
-                               }
-                           }
-                       });
-                   });
+        initRangeSliders: function() {
+            document.querySelectorAll('.fs-rangeslider_input').forEach(input => {
+                const displayValueElement = input.closest('.fs-rangeslider_wrapper').querySelector('[fs-rangeslider-element="display-value"]');
+                
+                if (displayValueElement) {
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            if (mutation.type === 'characterData') {
+                                const value = mutation.target.textContent;
+                                if (value === '10') {
+                                    displayValueElement.textContent = '10 et plus';
+                                    input.value = '10 et plus';
+                                }
+                            }
+                        });
+                    });
 
-                   observer.observe(displayValueElement, { characterData: true, subtree: true });
-               }
-           });
-       },
+                    observer.observe(displayValueElement, { characterData: true, subtree: true });
+                }
+            });
+        },
 
-       init: function() {
-           this.initWindows();
-           this.initShutters();
-           this.initStores();
-           this.initDoors();
-           this.initRangeSliders();
+        init: function() {
+            this.initWindows();
+            this.initShutters();
+            this.initStores();
+            this.initDoors();
+            this.initRangeSliders();
 
-           // Observer les groupes pour réinitialiser quand ils sont masqués
-           document.querySelectorAll('[data-fields-group]').forEach(group => {
-               resetObserver.observe(group, { attributes: true, attributeFilter: ['style'] });
-           });
-       }
-   };
+            // Observer les groupes pour réinitialiser quand ils sont masqués
+            document.querySelectorAll('[data-fields-group]').forEach(group => {
+                resetObserver.observe(group, { attributes: true, attributeFilter: ['style'] });
+            });
+        }
+    };
 
-   if (document.readyState === 'loading') {
-       document.addEventListener('DOMContentLoaded', () => FieldMapper.init());
-   } else {
-       FieldMapper.init();
-   }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => FieldMapper.init());
+    } else {
+        FieldMapper.init();
+    }
 })();
