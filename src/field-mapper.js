@@ -31,31 +31,20 @@
                    
                    if (!group) return;
                    
-                   console.log("Type sélectionné:", type);
-                   
+                   // Quantité
                    const quantityInput = group.querySelector('.fs-rangeslider_input');
                    if (quantityInput) {
                        const newName = `quantite${type}__c`;
-                       quantityInput.name = newName;
+                       quantityInput.setAttribute('name', newName);
                        quantityInput.setAttribute('data-name', newName);
                        quantityInput.id = newName;
-                       console.log("Name de quantité mis à jour:", newName);
                    }
 
-                   // D'abord, on retire tous les names des matériaux
+                   // Nettoyage et mise à jour des matériaux
                    const materialInputs = group.querySelectorAll('[data-material-input] input[type="radio"]');
                    materialInputs.forEach(input => {
-                       input.name = '';
-                       input.setAttribute('data-name', '');
-                       console.log("Name nettoyé pour", input.value);
-                   });
-
-                   // Ensuite, on met le nouveau name pour le type sélectionné
-                   materialInputs.forEach(input => {
-                       const newName = `materiaux${type}__c`;
-                       input.name = newName;
-                       input.setAttribute('data-name', newName);
-                       console.log("Nouveau name pour matériau:", newName);
+                       input.setAttribute('name', `materiaux${type}__c`);
+                       input.setAttribute('data-name', `materiaux${type}__c`);
                    });
                });
            });
@@ -72,7 +61,7 @@
                    const quantityInput = group.querySelector('.fs-rangeslider_input');
                    if (quantityInput) {
                        const newName = `quantite${type}__c`;
-                       quantityInput.name = newName;
+                       quantityInput.setAttribute('name', newName);
                        quantityInput.setAttribute('data-name', newName);
                        quantityInput.id = newName;
                    }
@@ -82,7 +71,7 @@
                        const input = label.querySelector('input[type="radio"]:not([name="typeVolet"])');
                        if (input) {
                            const newName = `materiaux${type}__c`;
-                           input.name = newName;
+                           input.setAttribute('name', newName);
                            input.setAttribute('data-name', newName);
 
                            const allowedTypes = label.getAttribute('data-material-allowed');
@@ -106,7 +95,7 @@
                    const quantityInput = group.querySelector('.fs-rangeslider_input');
                    if (quantityInput) {
                        const newName = `quantite${type}__c`;
-                       quantityInput.name = newName;
+                       quantityInput.setAttribute('name', newName);
                        quantityInput.setAttribute('data-name', newName);
                        quantityInput.id = newName;
                    }
@@ -133,7 +122,7 @@
                        const materialInputs = materialsWrapper.querySelectorAll('input[type="radio"]');
                        materialInputs.forEach(input => {
                            const newName = `materiaux${type}__c`;
-                           input.name = newName;
+                           input.setAttribute('name', newName);
                            input.setAttribute('data-name', newName);
                        });
                    }
@@ -152,7 +141,7 @@
                    const quantityInput = group.querySelector('.fs-rangeslider_input');
                    if (quantityInput) {
                        const newName = `quantite${type}__c`;
-                       quantityInput.name = newName;
+                       quantityInput.setAttribute('name', newName);
                        quantityInput.setAttribute('data-name', newName);
                        quantityInput.id = newName;
                    }
@@ -162,7 +151,7 @@
                        const input = label.querySelector('input[type="radio"]:not([name="typePorte"])');
                        if (input) {
                            const newName = `materiaux${type}__c`;
-                           input.name = newName;
+                           input.setAttribute('name', newName);
                            input.setAttribute('data-name', newName);
 
                            const allowedTypes = label.getAttribute('data-material-allowed');
