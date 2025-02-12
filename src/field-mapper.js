@@ -4,66 +4,87 @@
             if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
                 const element = mutation.target;
                 if (element.style.display === 'none') {
-                    FieldMapper._resetGroupFields(element);
+                    // Réinitialiser les radios
+                    element.querySelectorAll('input[type="radio"]').forEach(input => {
+                        const customInput = input.previousElementSibling;
+                        if (customInput) {
+                            customInput.classList.remove('w--redirected-checked');
+                        }
+                        input.checked = false;
+                        input.name = '';
+                        input.setAttribute('data-name', '');
+                    });
+
+                    // Réinitialiser les sliders
+                    element.querySelectorAll('.fs-rangeslider_input').forEach(input => {
+                        input.value = '0';
+                        input.name = '';
+                        input.setAttribute('data-name', '');
+                    });
                 }
             }
         });
     });
 
     const FieldMapper = {
-        // Fonction helper pour réinitialiser tous les noms de champs dans un groupe
-        _resetGroupFields: function(group) {
-            // Réinitialiser tous les inputs radio
-            group.querySelectorAll('input[type="radio"]').forEach(input => {
-                input.name = '';
-                input.setAttribute('data-name', '');
-                const customInput = input.previousElementSibling;
-                if (customInput) {
-                    customInput.classList.remove('w--redirected-checked');
-                }
-                input.checked = false;
-            });
+        _handleGroupChange: function(group, selectedType, prefix) {
+            const quantityInput = group.querySelector(`.fs-rangeslider_input[id^="quantite${selectedType}"]`);
+            const quantity = quantityInput ? parseInt(quantityInput.value) : 0;
 
-            // Réinitialiser le range slider
-            const rangeSlider = group.querySelector('.fs-rangeslider_input');
-            if (rangeSlider) {
-                rangeSlider.value = '0';
-                rangeSlider.name = '';
-                rangeSlider.setAttribute('data-name', '');
-            }
-        },
-
-        // Fonction helper pour gérer les changements dans un groupe
-        _handleGroupChange: function(group, type, typeInputName) {
-            // D'abord, on réinitialise tous les noms sauf le type sélectionné
-            group.querySelectorAll('input[type="radio"]').forEach(input => {
-                if (input.name !== typeInputName && !input.checked) {
-                    input.name = '';
-                    input.setAttribute('data-name', '');
-                }
-            });
-
-            // Gestion du range slider
-            const quantityInput = group.querySelector('.fs-rangeslider_input');
-            if (quantityInput) {
-                if (quantityInput.value !== '0') {
-                    const newName = `quantite${type}__c`;
-                    quantityInput.name = newName;
-                    quantityInput.setAttribute('data-name', newName);
-                    quantityInput.id = newName;
-                } else {
+            if (quantity === 0) {
+                // Si quantité = 0, retirer les names
+                if (quantityInput) {
                     quantityInput.name = '';
                     quantityInput.setAttribute('data-name', '');
                 }
+
+                // Retirer les names des matériaux
+                group.querySelectorAll(`input[name^="materiaux${selectedType}"]`).forEach(input => {
+                    input.name = '';
+                    input.setAttribute('data-name', '');
+                });
+            } else {
+                // Si quantité > 0, mettre à jour les names
+                if (quantityInput) {
+                    const newName = `quantite${selectedType}__c`;
+                    quantityInput.name = newName;
+                    quantityInput.setAttribute('data-name', newName);
+                    quantityInput.id = newName;
+                }
+
+                // Mettre à jour le name du matériau sélectionné
+                const materialInputs = group.querySelectorAll('[data-material-input] input[type="radio"]');
+                materialInputs.forEach(input => {
+                    if (input.checked) {
+                        const newName = `materiaux${selectedType}__c`;
+                        input.name = newName;
+                        input.setAttribute('data-name', newName);
+                    }
+                });
+            }
+        },
+
+        _attachGroupListeners: function(group, typeSelector, prefix) {
+            // Écouter les changements de quantité
+            const rangeSlider = group.querySelector('.fs-rangeslider_input');
+            if (rangeSlider) {
+                rangeSlider.addEventListener('input', () => {
+                    const typeInput = group.querySelector(typeSelector + ':checked');
+                    if (typeInput) {
+                        this._handleGroupChange(group, typeInput.value, prefix);
+                    }
+                });
             }
 
-            // Gestion des matériaux
-            const checkedMaterial = group.querySelector('[data-material-input] input[type="radio"]:checked');
-            if (checkedMaterial) {
-                const newName = `materiaux${type}__c`;
-                checkedMaterial.name = newName;
-                checkedMaterial.setAttribute('data-name', newName);
-            }
+            // Écouter les changements de matériaux
+            group.querySelectorAll('[data-material-input] input[type="radio"]').forEach(input => {
+                input.addEventListener('change', () => {
+                    const typeInput = group.querySelector(typeSelector + ':checked');
+                    if (typeInput) {
+                        this._handleGroupChange(group, typeInput.value, prefix);
+                    }
+                });
+            });
         },
 
         initWindows: function() {
@@ -72,12 +93,14 @@
                     const type = e.target.value;
                     const group = e.target.closest('[data-fields-group]');
                     if (group) {
-                        this._handleGroupChange(group, type, 'typeOuverture');
+                        this._handleGroupChange(group, type, 'Fenetre');
                     }
                 });
             });
 
-            this._attachGroupListeners('[data-fields-group]', '[data-type-ouverture]');
+            document.querySelectorAll('[data-fields-group]').forEach(group => {
+                this._attachGroupListeners(group, '[data-type-ouverture] input[type="radio"]', 'Fenetre');
+            });
         },
 
         initShutters: function() {
@@ -86,8 +109,8 @@
                     const type = e.target.value;
                     const group = e.target.closest('[data-fields-group="Volets"]');
                     if (group) {
-                        this._handleGroupChange(group, type, 'typeVolet');
-                        
+                        this._handleGroupChange(group, type, 'Volet');
+
                         // Gestion de l'affichage des matériaux autorisés
                         const materialLabels = group.querySelectorAll('.form_radio');
                         materialLabels.forEach(label => {
@@ -100,7 +123,9 @@
                 });
             });
 
-            this._attachGroupListeners('[data-fields-group="Volets"]', 'input[name="typeVolet"]');
+            document.querySelectorAll('[data-fields-group="Volets"]').forEach(group => {
+                this._attachGroupListeners(group, 'input[name="typeVolet"]', 'Volet');
+            });
         },
 
         initStores: function() {
@@ -109,8 +134,8 @@
                     const type = e.target.value;
                     const group = e.target.closest('[data-fields-group="Stores"]');
                     if (group) {
-                        this._handleGroupChange(group, type, 'typeStore');
-                        
+                        this._handleGroupChange(group, type, 'Store');
+
                         // Gestion spécifique pour les moustiquaires
                         const materialsWrapper = group.querySelector('[data-material-group="moustiquaire"]');
                         if (materialsWrapper) {
@@ -120,7 +145,9 @@
                 });
             });
 
-            this._attachGroupListeners('[data-fields-group="Stores"]', 'input[name="typeStore"]');
+            document.querySelectorAll('[data-fields-group="Stores"]').forEach(group => {
+                this._attachGroupListeners(group, 'input[name="typeStore"]', 'Store');
+            });
         },
 
         initDoors: function() {
@@ -129,8 +156,8 @@
                     const type = e.target.value;
                     const group = e.target.closest('[data-fields-group="Portes"]');
                     if (group) {
-                        this._handleGroupChange(group, type, 'typePorte');
-                        
+                        this._handleGroupChange(group, type, 'Porte');
+
                         // Gestion de l'affichage des matériaux autorisés
                         const materialLabels = group.querySelectorAll('.form_radio');
                         materialLabels.forEach(label => {
@@ -143,31 +170,8 @@
                 });
             });
 
-            this._attachGroupListeners('[data-fields-group="Portes"]', 'input[name="typePorte"]');
-        },
-
-        _attachGroupListeners: function(groupSelector, typeSelector) {
-            document.querySelectorAll(groupSelector).forEach(group => {
-                // Pour les changements de matériaux
-                group.querySelectorAll('[data-material-input] input[type="radio"]').forEach(input => {
-                    input.addEventListener('change', () => {
-                        const typeInput = group.querySelector(typeSelector + ':checked');
-                        if (typeInput) {
-                            this._handleGroupChange(group, typeInput.value, typeInput.name);
-                        }
-                    });
-                });
-
-                // Pour les changements de quantité
-                const rangeSlider = group.querySelector('.fs-rangeslider_input');
-                if (rangeSlider) {
-                    rangeSlider.addEventListener('input', () => {
-                        const typeInput = group.querySelector(typeSelector + ':checked');
-                        if (typeInput) {
-                            this._handleGroupChange(group, typeInput.value, typeInput.name);
-                        }
-                    });
-                }
+            document.querySelectorAll('[data-fields-group="Portes"]').forEach(group => {
+                this._attachGroupListeners(group, 'input[name="typePorte"]', 'Porte');
             });
         },
 
