@@ -1,15 +1,9 @@
-# Webflow Utils
+# Documentation
 
-Une collection d'utilitaires JavaScript pour améliorer les fonctionnalités de Webflow.
+En cours d'écriture
 
-## Fonctionnalités
+**#Pour Omar**
 
-### Phone Formatter
-Formatage et validation des numéros de téléphone français avec support de différents formats d'entrée.
+C'est Fieldmapper qui t'intéresse
 
-## Installation
 
-Ajoutez ce script dans les paramètres personnalisés de votre site Webflow :
-
-```html
-<script src="https://cdn.jsdelivr.net/gh/robindelporte/KparK@main/src/phone-utils.js"></script>
