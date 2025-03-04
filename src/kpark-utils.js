@@ -23,16 +23,18 @@
             });
             
             // Normaliser seulement au moment de la soumission
-            input.form.addEventListener('submit', (e) => {
-                const isValid = this._validateEmail(input.value);
-                if (!isValid) {
-                    e.preventDefault();
-                    alert('Veuillez entrer une adresse email valide');
-                } else {
-                    // Normaliser l'email au moment de la soumission
-                    input.value = this._normalizeEmail(input.value);
-                }
-            });
+            if (input.form) {
+                input.form.addEventListener('submit', (e) => {
+                    const isValid = this._validateEmail(input.value);
+                    if (!isValid) {
+                        e.preventDefault();
+                        alert('Veuillez entrer une adresse email valide');
+                    } else {
+                        // Normaliser l'email au moment de la soumission
+                        input.value = this._normalizeEmail(input.value);
+                    }
+                });
+            }
         },
 
         _normalizeEmail: function(value) {
@@ -48,10 +50,12 @@
     // Utilitaire pour les validations de téléphone
     const PhoneUtils = {
         init: function() {
-            const phoneInput = document.querySelector('input[type="tel"]');
-            if (phoneInput) {
-                this._attachEvents(phoneInput);
-            }
+            const phoneInputs = document.querySelectorAll('input[type="tel"]');
+            phoneInputs.forEach(input => {
+                if (input) {
+                    this._attachEvents(input);
+                }
+            });
         },
 
         _attachEvents: function(input) {
@@ -67,123 +71,52 @@
             });
             
             // Normaliser seulement au moment de la soumission
-            input.form.addEventListener('submit', (e) => {
-                const isValid = this._validateNumber(input.value);
-                if (!isValid) {
-                    e.preventDefault();
-                    alert('Veuillez entrer un numéro de téléphone valide');
-                } else {
-                    // Normaliser le téléphone au moment de la soumission
-                    input.value = this._normalizeNumber(input.value);
-                }
-            });
+            if (input.form) {
+                input.form.addEventListener('submit', (e) => {
+                    const isValid = this._validateNumber(input.value);
+                    if (!isValid) {
+                        e.preventDefault();
+                        alert('Veuillez entrer un numéro de téléphone valide');
+                    } else {
+                        // Étape cruciale : normaliser le téléphone juste avant l'envoi
+                        const normalizedValue = this._normalizeNumber(input.value);
+                        console.log('Normalizing phone from', input.value, 'to', normalizedValue);
+                        input.value = normalizedValue;
+                    }
+                }, true); // Le true est pour capturer l'événement en mode capture
+            }
         },
 
         _normalizeNumber: function(value) {
+            // Supprimer tous les caractères non numériques sauf "+"
             let normalized = value.replace(/[^\d+]/g, '');
-            normalized = normalized.replace(/^0/, '+33');
             
-            if (normalized.startsWith('33')) {
+            // Si commence par 0, remplacer par +33
+            if (normalized.startsWith('0')) {
+                normalized = '+33' + normalized.substring(1);
+            }
+            
+            // Si commence par 33 sans +, ajouter le +
+            else if (normalized.startsWith('33') && !normalized.startsWith('+')) {
                 normalized = '+' + normalized;
             }
             
-            return normalized.replace(/(\+33)(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5 $6');
+            // Appliquer le format avec espaces
+            // Match +33 suivi de 9 chiffres et les formatte
+            if (/^\+33\d{9}$/.test(normalized)) {
+                normalized = normalized.replace(/(\+33)(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5 $6');
+            }
+            
+            return normalized;
         },
 
         _validateNumber: function(value) {
-            return /^(?:\+33\s?|0)\d(?:\s?\d{2}){4}$/.test(value);
-        }
-    };
-
-    // Utilitaire pour la validation des checkbox
-    const CheckboxUtils = {
-        init: function() {
-            const form = document.getElementById('myForm');
-            if (!form) return;
-
-            const checkboxGroup = document.getElementById('chkGroup');
-            const errorMessage = document.querySelector('.checkbox-error');
-            
-            if (!checkboxGroup || !errorMessage) return;
-
-            errorMessage.style.display = 'none';
-
-            form.addEventListener('submit', (e) => {
-                const checkboxes = checkboxGroup.querySelectorAll('input[type="checkbox"]');
-                const isChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
-                if (!isChecked) {
-                    e.preventDefault();
-                    errorMessage.style.display = 'flex';
-                }
-            });
-
-            checkboxGroup.addEventListener('change', (e) => {
-                if (e.target.type === 'checkbox' && e.target.checked) {
-                    errorMessage.style.display = 'none';
-                }
-            });
-        }
-    };
-
-    // Utilitaire pour l'affichage conditionnel
-    const ConditionalDisplay = {
-        init: function() {
-            this._initializeGroups();
-            this._attachEvents();
-        },
-
-        _attachEvents: function() {
-            document.addEventListener('change', (e) => {
-                setTimeout(() => {
-                    this._updateAllGroups();
-                }, 50);
-            });
-        },
-
-        _initializeGroups: function() {
-            document.querySelectorAll('[data-fields-group]').forEach(group => {
-                group.style.display = 'none';
-            });
-            
-            this._updateAllGroups();
-        },
-
-        _updateAllGroups: function() {
-            document.querySelectorAll('input[data-related-group]').forEach(input => {
-                const checkboxDiv = input.previousElementSibling;
-                if (!checkboxDiv) return;
-
-                const isChecked = checkboxDiv.classList.contains('w--redirected-checked');
-                const groupId = input.getAttribute('data-related-group');
-                this._toggleGroup(groupId, isChecked);
-            });
-        },
-
-        _toggleGroup: function(groupId, show) {
-            const group = document.querySelector(`[data-fields-group="${groupId}"]`);
-            if (!group) return;
-
-            group.style.display = show ? 'flex' : 'none';
-            
-            if (!show) {
-                this._resetFieldsInGroup(group);
-            }
-        },
-
-        _resetFieldsInGroup: function(group) {
-            group.querySelectorAll('input').forEach(input => {
-                const customInput = input.previousElementSibling;
-                if (customInput && customInput.classList.contains('w-checkbox-input')) {
-                    customInput.classList.remove('w--redirected-checked');
-                } else if (customInput && customInput.classList.contains('w-radio-input')) {
-                    customInput.classList.remove('w--redirected-checked');
-                }
-                input.checked = false;
-            });
-
-            group.querySelectorAll('select').forEach(select => {
-                select.selectedIndex = 0;
-            });
+            // Accepte les formats:
+            // 0769454696
+            // 07 69 45 46 96
+            // +33769454696
+            // +33 7 69 45 46 96
+            return /^(?:(?:\+33|0)\s?[1-9](?:\s?\d{2}){4})$/.test(value);
         }
     };
 
