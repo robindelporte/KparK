@@ -11,7 +11,6 @@
         },
 
         _attachEvents: function(input) {
-            // Vérification de la validité pendant la saisie
             input.addEventListener('input', () => {
                 const isValid = this._validateEmail(input.value);
                 input.classList.toggle('error', !isValid);
@@ -21,58 +20,6 @@
                 const isValid = this._validateEmail(input.value);
                 input.classList.toggle('error', !isValid);
             });
-            
-            // Configurer un champ caché correspondant
-            const hiddenField = this._setupHiddenField(input, 'emailCompte__c');
-            
-            // Mettre à jour le champ caché lors de la soumission
-            if (input.form) {
-                input.form.addEventListener('submit', (e) => {
-                    const isValid = this._validateEmail(input.value);
-                    if (!isValid) {
-                        e.preventDefault();
-                        alert('Veuillez entrer une adresse email valide');
-                    } else {
-                        // Mettre à jour le champ caché avec la valeur normalisée
-                        hiddenField.value = this._normalizeEmail(input.value);
-                        
-                        // IMPORTANT: Désactiver le champ visible pour que seul le champ caché soit envoyé
-                        input.disabled = true;
-                    }
-                }, true);
-            }
-        },
-        
-        _setupHiddenField: function(input, fieldName) {
-            // Vérifier si le champ caché existe déjà
-            let hiddenField = input.form.querySelector(`input[name="${fieldName}"]`);
-            
-            // Si le champ existe déjà
-            if (hiddenField) {
-                // Si c'est le même que l'input visible, créer un nouveau
-                if (hiddenField === input) {
-                    // Changer le nom du champ visible
-                    input.name = 'visible_' + fieldName;
-                    
-                    // Créer un nouveau champ caché
-                    hiddenField = document.createElement('input');
-                    hiddenField.type = 'hidden';
-                    hiddenField.name = fieldName;
-                    input.form.appendChild(hiddenField);
-                }
-            } else {
-                // Créer le champ caché
-                hiddenField = document.createElement('input');
-                hiddenField.type = 'hidden';
-                hiddenField.name = fieldName;
-                input.form.appendChild(hiddenField);
-            }
-            
-            return hiddenField;
-        },
-
-        _normalizeEmail: function(value) {
-            return value.trim().toLowerCase();
         },
 
         _validateEmail: function(value) {
@@ -93,7 +40,6 @@
         },
 
         _attachEvents: function(input) {
-            // Vérification de la validité pendant la saisie
             input.addEventListener('input', () => {
                 const isValid = this._validateNumber(input.value);
                 input.classList.toggle('error', !isValid);
@@ -102,74 +48,22 @@
             input.addEventListener('blur', () => {
                 const isValid = this._validateNumber(input.value);
                 input.classList.toggle('error', !isValid);
-            });
-            
-            // Configurer un champ caché correspondant
-            const hiddenField = this._setupHiddenField(input, 'telephoneDomicileCompte__c');
-            
-            // Mettre à jour le champ caché lors de la soumission
-            if (input.form) {
-                input.form.addEventListener('submit', (e) => {
-                    const isValid = this._validateNumber(input.value);
-                    if (!isValid) {
-                        e.preventDefault();
-                        alert('Veuillez entrer un numéro de téléphone valide');
-                    } else {
-                        // Mettre à jour le champ caché avec la valeur normalisée
-                        const normalizedValue = this._normalizeNumber(input.value);
-                        console.log('Normalizing phone:', input.value, '→', normalizedValue);
-                        hiddenField.value = normalizedValue;
-                        
-                        // IMPORTANT: Désactiver le champ visible pour que seul le champ caché soit envoyé
-                        input.disabled = true;
-                    }
-                }, true);
-            }
-        },
-        
-        _setupHiddenField: function(input, fieldName) {
-            // Vérifier si le champ caché existe déjà
-            let hiddenField = input.form.querySelector(`input[name="${fieldName}"]`);
-            
-            // Si le champ existe déjà
-            if (hiddenField) {
-                // Si c'est le même que l'input visible, créer un nouveau
-                if (hiddenField === input) {
-                    // Changer le nom du champ visible
-                    input.name = 'visible_' + fieldName;
-                    
-                    // Créer un nouveau champ caché
-                    hiddenField = document.createElement('input');
-                    hiddenField.type = 'hidden';
-                    hiddenField.name = fieldName;
-                    input.form.appendChild(hiddenField);
+                
+                if (isValid) {
+                    input.value = this._normalizeNumber(input.value);
                 }
-            } else {
-                // Créer le champ caché
-                hiddenField = document.createElement('input');
-                hiddenField.type = 'hidden';
-                hiddenField.name = fieldName;
-                input.form.appendChild(hiddenField);
-            }
-            
-            return hiddenField;
+            });
         },
 
         _normalizeNumber: function(value) {
-            // Supprimer tous les caractères non numériques sauf "+"
             let normalized = value.replace(/[^\d+]/g, '');
             
-            // Si commence par 0, remplacer par +33
             if (normalized.startsWith('0')) {
                 normalized = '+33' + normalized.substring(1);
-            }
-            
-            // Si commence par 33 sans +, ajouter le +
-            else if (normalized.startsWith('33') && !normalized.startsWith('+')) {
+            } else if (normalized.startsWith('33') && !normalized.startsWith('+')) {
                 normalized = '+' + normalized;
             }
             
-            // Appliquer le format avec espaces
             if (/^\+33\d{9}$/.test(normalized)) {
                 normalized = normalized.replace(/(\+33)(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5 $6');
             }
