@@ -11,48 +11,28 @@
         },
 
         _attachEvents: function(input) {
+            // Vérification de la validité pendant la saisie (sans modifier la valeur)
             input.addEventListener('input', () => {
-                this._handleEmail(input);
+                const isValid = this._validateEmail(input.value);
+                input.classList.toggle('error', !isValid);
             });
             
             input.addEventListener('blur', () => {
-                this._handleEmail(input);
+                const isValid = this._validateEmail(input.value);
+                input.classList.toggle('error', !isValid);
             });
             
+            // Normaliser seulement au moment de la soumission
             input.form.addEventListener('submit', (e) => {
-                if (!this._handleEmail(input)) {
+                const isValid = this._validateEmail(input.value);
+                if (!isValid) {
                     e.preventDefault();
                     alert('Veuillez entrer une adresse email valide');
+                } else {
+                    // Normaliser l'email au moment de la soumission
+                    input.value = this._normalizeEmail(input.value);
                 }
             });
-        },
-
-        _handleEmail: function(input) {
-            const displayValue = input.value;
-            let hiddenInput = this._getOrCreateHiddenInput(input.form);
-            let normalizedEmail = this._normalizeEmail(displayValue);
-            hiddenInput.value = normalizedEmail;
-            
-            const isValid = this._validateEmail(displayValue);
-            input.classList.toggle('error', !isValid);
-            return isValid;
-        },
-
-        _getOrCreateHiddenInput: function(form) {
-            // Chercher d'abord le champ existant emailCompte__c
-            let hidden = form.querySelector('input[name="emailCompte__c"]');
-            if (!hidden) {
-                // Si non trouvé, chercher email_normalized
-                hidden = form.querySelector('input[name="email_normalized"]');
-                if (!hidden) {
-                    // Si toujours pas trouvé, créer avec emailCompte__c
-                    hidden = document.createElement('input');
-                    hidden.type = 'hidden';
-                    hidden.name = 'emailCompte__c';
-                    form.appendChild(hidden);
-                }
-            }
-            return hidden;
         },
 
         _normalizeEmail: function(value) {
@@ -75,48 +55,28 @@
         },
 
         _attachEvents: function(input) {
+            // Vérification de la validité pendant la saisie (sans modifier la valeur)
             input.addEventListener('input', () => {
-                this._handlePhoneNumber(input);
+                const isValid = this._validateNumber(input.value);
+                input.classList.toggle('error', !isValid);
             });
             
             input.addEventListener('blur', () => {
-                this._handlePhoneNumber(input);
+                const isValid = this._validateNumber(input.value);
+                input.classList.toggle('error', !isValid);
             });
             
+            // Normaliser seulement au moment de la soumission
             input.form.addEventListener('submit', (e) => {
-                if (!this._handlePhoneNumber(input)) {
+                const isValid = this._validateNumber(input.value);
+                if (!isValid) {
                     e.preventDefault();
                     alert('Veuillez entrer un numéro de téléphone valide');
+                } else {
+                    // Normaliser le téléphone au moment de la soumission
+                    input.value = this._normalizeNumber(input.value);
                 }
             });
-        },
-
-        _handlePhoneNumber: function(input) {
-            const displayValue = input.value;
-            let hiddenInput = this._getOrCreateHiddenInput(input.form);
-            let normalizedNumber = this._normalizeNumber(displayValue);
-            hiddenInput.value = normalizedNumber;
-            
-            const isValid = this._validateNumber(displayValue);
-            input.classList.toggle('error', !isValid);
-            return isValid;
-        },
-
-        _getOrCreateHiddenInput: function(form) {
-            // Chercher d'abord le champ telephoneDomicileCompte__c
-            let hidden = form.querySelector('input[name="telephoneDomicileCompte__c"]');
-            if (!hidden) {
-                // Si non trouvé, chercher phone_normalized
-                hidden = form.querySelector('input[name="phone_normalized"]');
-                if (!hidden) {
-                    // Si toujours pas trouvé, créer avec telephoneDomicileCompte__c
-                    hidden = document.createElement('input');
-                    hidden.type = 'hidden';
-                    hidden.name = 'telephoneDomicileCompte__c';
-                    form.appendChild(hidden);
-                }
-            }
-            return hidden;
         },
 
         _normalizeNumber: function(value) {
