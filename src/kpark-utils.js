@@ -11,7 +11,7 @@
         },
 
         _attachEvents: function(input) {
-            // Vérification de la validité pendant la saisie (sans modifier la valeur)
+            // Vérification de la validité pendant la saisie
             input.addEventListener('input', () => {
                 const isValid = this._validateEmail(input.value);
                 input.classList.toggle('error', !isValid);
@@ -22,7 +22,10 @@
                 input.classList.toggle('error', !isValid);
             });
             
-            // Normaliser seulement au moment de la soumission
+            // Configurer un champ caché correspondant
+            const hiddenField = this._setupHiddenField(input, 'emailCompte__c');
+            
+            // Mettre à jour le champ caché lors de la soumission
             if (input.form) {
                 input.form.addEventListener('submit', (e) => {
                     const isValid = this._validateEmail(input.value);
@@ -30,11 +33,42 @@
                         e.preventDefault();
                         alert('Veuillez entrer une adresse email valide');
                     } else {
-                        // Normaliser l'email au moment de la soumission
-                        input.value = this._normalizeEmail(input.value);
+                        // Mettre à jour le champ caché avec la valeur normalisée
+                        hiddenField.value = this._normalizeEmail(input.value);
+                        
+                        // IMPORTANT: Désactiver le champ visible pour que seul le champ caché soit envoyé
+                        input.disabled = true;
                     }
-                });
+                }, true);
             }
+        },
+        
+        _setupHiddenField: function(input, fieldName) {
+            // Vérifier si le champ caché existe déjà
+            let hiddenField = input.form.querySelector(`input[name="${fieldName}"]`);
+            
+            // Si le champ existe déjà
+            if (hiddenField) {
+                // Si c'est le même que l'input visible, créer un nouveau
+                if (hiddenField === input) {
+                    // Changer le nom du champ visible
+                    input.name = 'visible_' + fieldName;
+                    
+                    // Créer un nouveau champ caché
+                    hiddenField = document.createElement('input');
+                    hiddenField.type = 'hidden';
+                    hiddenField.name = fieldName;
+                    input.form.appendChild(hiddenField);
+                }
+            } else {
+                // Créer le champ caché
+                hiddenField = document.createElement('input');
+                hiddenField.type = 'hidden';
+                hiddenField.name = fieldName;
+                input.form.appendChild(hiddenField);
+            }
+            
+            return hiddenField;
         },
 
         _normalizeEmail: function(value) {
@@ -59,7 +93,7 @@
         },
 
         _attachEvents: function(input) {
-            // Vérification de la validité pendant la saisie (sans modifier la valeur)
+            // Vérification de la validité pendant la saisie
             input.addEventListener('input', () => {
                 const isValid = this._validateNumber(input.value);
                 input.classList.toggle('error', !isValid);
@@ -70,7 +104,10 @@
                 input.classList.toggle('error', !isValid);
             });
             
-            // Normaliser seulement au moment de la soumission
+            // Configurer un champ caché correspondant
+            const hiddenField = this._setupHiddenField(input, 'telephoneDomicileCompte__c');
+            
+            // Mettre à jour le champ caché lors de la soumission
             if (input.form) {
                 input.form.addEventListener('submit', (e) => {
                     const isValid = this._validateNumber(input.value);
@@ -78,13 +115,44 @@
                         e.preventDefault();
                         alert('Veuillez entrer un numéro de téléphone valide');
                     } else {
-                        // Étape cruciale : normaliser le téléphone juste avant l'envoi
+                        // Mettre à jour le champ caché avec la valeur normalisée
                         const normalizedValue = this._normalizeNumber(input.value);
-                        console.log('Normalizing phone from', input.value, 'to', normalizedValue);
-                        input.value = normalizedValue;
+                        console.log('Normalizing phone:', input.value, '→', normalizedValue);
+                        hiddenField.value = normalizedValue;
+                        
+                        // IMPORTANT: Désactiver le champ visible pour que seul le champ caché soit envoyé
+                        input.disabled = true;
                     }
-                }, true); // Le true est pour capturer l'événement en mode capture
+                }, true);
             }
+        },
+        
+        _setupHiddenField: function(input, fieldName) {
+            // Vérifier si le champ caché existe déjà
+            let hiddenField = input.form.querySelector(`input[name="${fieldName}"]`);
+            
+            // Si le champ existe déjà
+            if (hiddenField) {
+                // Si c'est le même que l'input visible, créer un nouveau
+                if (hiddenField === input) {
+                    // Changer le nom du champ visible
+                    input.name = 'visible_' + fieldName;
+                    
+                    // Créer un nouveau champ caché
+                    hiddenField = document.createElement('input');
+                    hiddenField.type = 'hidden';
+                    hiddenField.name = fieldName;
+                    input.form.appendChild(hiddenField);
+                }
+            } else {
+                // Créer le champ caché
+                hiddenField = document.createElement('input');
+                hiddenField.type = 'hidden';
+                hiddenField.name = fieldName;
+                input.form.appendChild(hiddenField);
+            }
+            
+            return hiddenField;
         },
 
         _normalizeNumber: function(value) {
@@ -102,7 +170,6 @@
             }
             
             // Appliquer le format avec espaces
-            // Match +33 suivi de 9 chiffres et les formatte
             if (/^\+33\d{9}$/.test(normalized)) {
                 normalized = normalized.replace(/(\+33)(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5 $6');
             }
@@ -111,11 +178,6 @@
         },
 
         _validateNumber: function(value) {
-            // Accepte les formats:
-            // 0769454696
-            // 07 69 45 46 96
-            // +33769454696
-            // +33 7 69 45 46 96
             return /^(?:(?:\+33|0)\s?[1-9](?:\s?\d{2}){4})$/.test(value);
         }
     };
@@ -169,7 +231,7 @@
         }
     };
 
-    // Auto-initialisation des utilitaires (sans CheckboxUtils et ConditionalDisplay)
+    // Auto-initialisation des utilitaires
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             EmailUtils.init();
